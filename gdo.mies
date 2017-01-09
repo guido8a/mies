@@ -1,0 +1,23 @@
+-- creacion de un usuario para hacer backups automáticos
+
+useradd -m -d /home/back  back
+
+ps: bkgdo
+
+creación del script en e home del nuevo usuario:
+
+#!/bin/bash
+fecha=`date +"%m%d%y_%H%M"`
+arch="/home/back/data/mies_${fecha}.dump"
+echo $fecha
+export PGUSER=postgres
+export PGPASSWORD=Sunday.server.2011
+/opt/PostgreSQL/9.1/bin/pg_dump -h 127.0.0.1 mies > $arch
+sleep 3
+echo "backup realizado"
+
+poner el sqcript en el crontab:
+
+4 13 * * * root /home/back/backup.db
+
+

@@ -1,0 +1,630 @@
+package mies
+
+class AsignacionController extends mies.seguridad.Shield {
+
+    static allowedMethods = [guardarAsignacion: "POST"]
+
+    def kerberosService
+
+    /*TODO chequear el estado de los proyectos antes de sacar las asignaciones*/
+
+    def asignacionesProyecto = {
+        println "params " + params
+        def unidad = UnidadEjecutora.get(params.id)
+        def proyectos = Proyecto.findAllByUnidadEjecutora(unidad)
+        def datos = []
+        def fuentes = [:]
+        def actual
+        if (params.anio)
+            actual = Anio.get(params.anio)
+        else
+            actual = Anio.findByAnio(new Date().format("yyyy"))
+        if (!actual)
+            actual = Anio.list([sort: 'anio', order: 'desc']).pop()
+        proyectos.each {proyecto ->
+            fuentes.put(proyecto.id.toString(), Financiamiento.findAllByProyecto(proyecto).fuente)
+            def componentes = MarcoLogico.findAll("from MarcoLogico where proyecto = ${proyecto.id} and tipoElemento = 2 and estado = 0")
+            if (componentes.size() > 0) {
+                def temp = new HashMap()
+                temp.put("" + proyecto.id + "!" + proyecto.toStringLargo(), componentes)
+                datos.add(temp)
+            }
+
+        }
+
+        [unidad: unidad, datos: datos, fuentes: fuentes, actual: actual]
+
+
+    }
+    def asignacionProyecto = {
+        //println "params " + params
+        def proyecto = Proyecto.get(params.id)
+        def fuentes = Financiamiento.findAllByProyecto(proyecto).fuente
+        def actual
+        if (params.anio)
+            actual = Anio.get(params.anio)
+        else
+            actual = Anio.findByAnio(new Date().format("yyyy"))
+        if (!actual)
+            actual = Anio.list([sort: 'anio', order: 'desc']).pop()
+
+
+        [fuentes: fuentes, actual: actual, proyecto: proyecto]
+
+
+    }
+    def asignacionProyectov2 = {
+        println "params " + params
+        def proyecto = Proyecto.get(params.id)
+        def asignaciones = []
+        def actual
+        if (params.anio)
+            actual = Anio.get(params.anio)
+        else
+            actual = Anio.findByAnio(new Date().format("yyyy"))
+        if (!actual)
+            actual = Anio.list([sort: 'anio', order: 'desc']).pop()
+        MarcoLogico.findAll("from MarcoLogico where proyecto = ${proyecto.id} and tipoElemento=3 and estado=0").each {
+            def asig = Asignacion.findAllByMarcoLogicoAndAnio(it, actual)
+            if (asig)
+                asignaciones += asig
+        }
+
+        [asignaciones: asignaciones, actual: actual, proyecto: proyecto]
+
+
+    }
+
+
+    def programacionAsignacionesInversion = {
+        def actual
+        if (params.anio)
+            actual = Anio.get(params.anio)
+        else
+            actual = Anio.findByAnio(new Date().format("yyyy"))
+        if (!actual)
+            actual = Anio.list([sort: 'anio', order: 'desc']).pop()
+        //def unidad =UnidadEjecutora.get(params.id)
+        def proyecto = Proyecto.get(params.id)
+
+        def asgProy = []
+        MarcoLogico.findAll("from MarcoLogico where proyecto = ${proyecto.id} and tipoElemento=3 and estado=0").each {
+            def asig = Asignacion.findAllByMarcoLogicoAndAnio(it, actual)
+            if (asig)
+                asgProy += asig
+        }
+        def meses = []
+        12.times {meses.add(it + 1)}
+        [inversiones: asgProy, actual: actual, meses: meses, proyecto: proyecto]
+    }
+
+    def asignacionesCorrientes = {
+
+        def unidad = UnidadEjecutora.get(params.id)
+        def cinco = Actividad.findAll("from Actividad where codigo like '5%' order by codigo")
+        def ocho = Actividad.findAll("from Actividad where codigo like '8%' order by codigo")
+        def nueve = Actividad.findAll("from Actividad where codigo like '9%' order by codigo")
+        def fuentes = Fuente.list([sort: 'descripcion'])
+        def programas = ProgramaPresupuestario.list([sort: 'descripcion'])
+        def tipoGastos = TipoGasto.list([sort: 'descripcion'])
+        def actual
+        if (params.anio)
+            actual = Anio.get(params.anio)
+        else
+            actual = Anio.findByAnio(new Date().format("yyyy"))
+        if (!actual)
+            actual = Anio.list([sort: 'anio', order: 'desc']).pop()
+
+        [unidad: unidad, cinco: cinco, ocho: ocho, nueve: nueve, actual: actual, fuentes: fuentes, programas: programas, tipoGastos: tipoGastos]
+
+
+    }
+
+    def asignacionesCorrientesv2 = {
+
+
+        def unidad = UnidadEjecutora.get(params.id)
+        def fuentes = Fuente.list([sort: 'descripcion'])
+        def programas = ProgramaPresupuestario.list()
+        programas=programas.sort{it.codigo.toInteger()}
+        def actual, programa
+        def componentes = Componente.list([sort:'descripcion'])
+
+        if (params.anio) {
+            actual = Anio.get(params.anio)
+        } else {
+            actual = Anio.findByAnio(new Date().format("yyyy"))
+        }
+
+        if (params.programa) {
+            programa = ProgramaPresupuestario.get(params.programa)
+        }
+
+
+        if (!actual) {
+            actual = Anio.list([sort: 'anio', order: 'desc']).pop()
+        }
+        if (!programa) {
+            programa = programas[0]
+        }
+
+
+        def c = Asignacion.createCriteria()
+
+
+        def asignaciones = c.list {
+            and {
+                eq("anio", actual)
+                eq("unidad", unidad)
+                eq("programa", programa)
+                isNull("marcoLogico")
+            }
+            order("id","asc")
+        }
+
+        c = Asignacion.createCriteria()
+        def asgs = c.list {
+            and {
+                eq("anio", actual)
+                eq("unidad", unidad)
+                isNull("marcoLogico")
+            }
+        }
+
+        if(params.todo=="1"){
+            asignaciones=asgs
+        }
+
+        def total = 0
+        asgs.each { asg ->
+            total += ((asg.redistribucion == 0) ? asg.planificado.toDouble() : asg.redistribucion.toDouble())
+        }
+
+        def maxUnidad
+        if (PresupuestoUnidad.findByUnidadAndAnio(unidad, actual)) {
+            maxUnidad = PresupuestoUnidad.findByUnidadAndAnio(unidad, actual).maxCorrientes
+        } else {
+            maxUnidad = 0
+        }
+
+        [unidad: unidad, actual: actual, asignaciones: asignaciones, fuentes: fuentes, programas: programas, programa: programa, totalUnidad: total, maxUnidad: maxUnidad,componentes:componentes]
+    }
+
+
+
+
+    def listaAsignaciones = {
+        println "lista " + params
+        params.max = Math.min(params.max ? params.int('max') : 25, 100)
+        def asig = []
+        if (params.parametro && params.parametro.trim().size() > 0) {
+            def valor
+            try {
+                valor = params.parametro.toDouble()
+            } catch (e) {
+                valor = 0
+            }
+            if (valor > 0) {
+                asig = Asignacion.findAllByPlanificadoGreaterThan(valor - 1, params)
+            } else {
+                def mls = MarcoLogico.findAllByTipoElementoAndObjetoIlike(TipoElemento.findByDescripcion("Actividad"), "%" + params.parametro + "%")
+                def actvs = Actividad.findAllByDescripcionIlike("%" + params.parametro + "%")
+                mls.each {
+                    asig += Asignacion.findAllByMarcoLogico(it, params)
+                }
+                actvs.each {
+                    asig += Asignacion.findAllByActividad(it, params)
+                }
+
+            }
+        } else {
+            asig = Asignacion.list(params)
+        }
+
+
+        [asig: asig, total: asig.count(), parametro: params.parametro]
+
+    }
+
+
+    def show = {
+        def asignacionInstance = Asignacion.get(params.id)
+        [asignacionInstance: asignacionInstance]
+    }
+    def form = {
+        def title
+        def asignacionInstance
+        params.source = "edit"
+        if (params.source == "create") {
+            asignacionInstance = new Asignacion()
+            asignacionInstance.properties = params
+            title = g.message(code: "default.create.label", args: ["Asignaciones"], default: "Asignación")
+        } else if (params.source == "edit") {
+            asignacionInstance = Asignacion.get(params.id)
+            if (!asignacionInstance) {
+                flash.message = "No se encontro la asignación"
+                redirect(action: "listaAsignaciones")
+            }
+            title = "Editar asignación"
+        }
+
+        return [asignacionInstance: asignacionInstance, title: title, source: params.source]
+    }
+
+    def save = {
+        println "save " + params
+        def asg = kerberosService.save(params, Asignacion, session.perfil, session.usuario)
+        if (asg.errors.getErrorCount() != 0) {
+            render(view: "form", model: [asignacionInstance: asg])
+        } else {
+            redirect(action: "pacAsignacion", params: [id: asg.id])
+        }
+    }
+
+
+    def eliminarAsignacion = {
+//        println "params elim asignacion"
+//        println params
+
+        if (params.id) {
+            def band = true
+
+            def asig = Asignacion.get(params.id)
+            def obras = Obra.findAllByAsignacion(asig)
+            def prgAsg = ProgramacionAsignacion.findAllByAsignacion(asig)
+            def hijos = Asignacion.findAllByPadre(asig)
+
+            obras.each { obra ->
+                def p = [:]
+
+                p.id = obra.id
+                p.controllerName = "Asignacion"
+                p.actionName = "eliminarAsignacion"
+                if (!kerberosService.delete(p, Obra, session.perfil, session.usuario)) {
+                    band = false
+                }
+            }
+
+            prgAsg.each { asg ->
+                def p = [:]
+
+                p.id = asg.id
+                p.controllerName = "Asignacion"
+                p.actionName = "eliminarAsignacion"
+                if (!kerberosService.delete(p, ProgramacionAsignacion, session.perfil, session.usuario)) {
+                    band = false
+                }
+            }
+
+            hijos.each { asg ->
+                def p = [:]
+
+                p.id = asg.id
+                p.controllerName = "Asignacion"
+                p.actionName = "eliminarAsignacion"
+                if (!kerberosService.delete(p, Asignacion, session.perfil, session.usuario)) {
+                    band = false
+                }
+            }
+
+            if (!kerberosService.delete(params, Asignacion, session.perfil, session.usuario)) {
+                band = false
+            }
+
+            if (band) {
+                println "1"
+                render("OK")
+            } else {
+                println "2"
+                render("NO")
+            }
+
+        } else {
+            println "3"
+            render("NO")
+        }
+    }
+
+    def guardarAsignacion = {
+        println "params guadr asignacion " + params
+
+        params.planificado = params.planificado.replaceAll("\\.", "")
+        params.planificado = params.planificado.replaceAll(",", "\\.")
+        params.planificado = params.planificado.toDouble()
+        if(params.componente.id == "-1"){
+            params.remove('componente.id')
+        }
+        def asg
+        if (params.id) {
+            asg = Asignacion.get(params.id)
+            asg.properties = params
+        } else {
+            asg = new Asignacion(params)
+        }
+//        def asignaciones = Asignacion.findAllByMarcoLogicoAndAnio(asg.marcoLogico,asg.anio)
+        //        println "asignaciones "+asignaciones
+
+        asg = kerberosService.saveObject(asg, Asignacion, session.perfil, session.usuario, "guardarAsignacion", "asignacion", session)
+        if (asg.errors.getErrorCount() == 0) {
+            render guardarPras(asg)
+        } else {
+            render 0
+        }
+/*
+        if (asg.errors.getErrorCount() == 0) {
+            def total = (asg.redistribucion == 0) ? (asg.planificado) : (asg.redistribucion)
+            def valor = (total / 12).toFloat().round(2)
+            def residuo = 0
+            if (valor * 12 != total) {
+                residuo = (total.toDouble() - valor.toDouble() * 12).toFloat().round(2)
+            }
+            println "total " + total + " valor " + valor + " res " + residuo
+//            println "calc "+ (valor.toDouble()*12)
+//            println "calc 2 "+ (total-valor*12).toFloat().round(2)
+
+            12.times {
+                def mes = Mes.get(it + 1)
+                ProgramacionAsignacion.findByAsignacionAndMes(asg, mes)?.delete(flush: true)
+                def programacion = new ProgramacionAsignacion()
+                programacion.asignacion = asg
+                programacion.mes = mes
+                if (it < 11) {
+                    programacion.valor = valor
+                } else {
+                    programacion.valor = valor + residuo
+                }
+                programacion = kerberosService.saveObject(programacion, ProgramacionAsignacion, session.perfil, session.usuario, "guardarAsignacion", "asignacion", session)
+            }
+            render asg.id
+        } else {
+            render 0
+        }
+*/
+    }
+
+    def guardarPras(asg) {
+        if (asg) {
+            def total = (asg.redistribucion == 0) ? (asg.planificado) : (asg.redistribucion)
+            def valor = (total / 12).toFloat().round(2)
+            def residuo = 0
+            if (valor * 12 != total) {
+                residuo = (total.toDouble() - valor.toDouble() * 12).toFloat().round(2)
+            }
+            println "total " + total + " valor " + valor + " res " + residuo
+//            println "calc "+ (valor.toDouble()*12)
+//            println "calc 2 "+ (total-valor*12).toFloat().round(2)
+
+            12.times {
+                def mes = Mes.get(it + 1)
+                ProgramacionAsignacion.findByAsignacionAndMes(asg, mes)?.delete(flush: true)
+                def programacion = new ProgramacionAsignacion()
+                programacion.asignacion = asg
+                programacion.mes = mes
+                if (it < 11) {
+                    programacion.valor = valor
+                } else {
+                    programacion.valor = valor + residuo
+                }
+                programacion = kerberosService.saveObject(programacion, ProgramacionAsignacion, session.perfil, session.usuario, "guardarAsignacion", "asignacion", session)
+            }
+            return asg.id
+        } else {
+            return 0
+        }
+    }
+
+    def programacionAsignaciones = {
+        def actual
+        if (params.anio)
+            actual = Anio.get(params.anio)
+        else
+            actual = Anio.findByAnio(new Date().format("yyyy"))
+        if (!actual)
+            actual = Anio.list([sort: 'anio', order: 'desc']).pop()
+        def unidad = UnidadEjecutora.get(params.id)
+        def asgProy = Asignacion.findAll("from Asignacion where unidad=${unidad.id} and marcoLogico is not null and anio=${actual.id} order by id")
+        def asgCor = Asignacion.findAll("from Asignacion where unidad=${unidad.id} and actividad is not null and anio=${actual.id} and marcoLogico is null order by id")
+        def meses = []
+        12.times {meses.add(it + 1)}
+        [unidad: unidad, corrientes: asgCor, inversiones: asgProy, actual: actual, meses: meses]
+    }
+
+    def guardarProgramacion = {
+
+        def asig = Asignacion.get(params.asignacion)
+        def datos = params.datos.split(";")
+        datos.each {
+            def partes = it.split(":")
+
+            def prog = ProgramacionAsignacion.findByAsignacionAndMes(asig, Mes.get(partes[0]))
+            if (!prog) {
+                prog = new ProgramacionAsignacion()
+                prog.asignacion = asig
+                prog.mes = Mes.get(partes[0])
+            }
+            prog.valor = partes[1].toDouble()
+            prog = kerberosService.saveObject(prog, ProgramacionAsignacion, session.perfil, session.usuario, "guardarProgramacion", "asignacion", session)
+            println "errores" + prog.errors
+
+
+        }
+        render "ok"
+    }
+
+
+    def nuevaAsignacionGastoCorriente = {
+
+    }
+    def buscarPresupuesto = {
+        println "buscar " + params
+        def prsp = []
+        if (!params.tipo) {
+            if (params.parametro && params.parametro.trim().size() > 0) {
+                prsp = Presupuesto.findAll("from Presupuesto where numero like '%${params.parametro}%' and movimiento=1 order by numero")
+            } else {
+                println "aqui "
+                prsp = Presupuesto.findAllByMovimiento(1, [sort: "numero", max: 20])
+            }
+        } else {
+            if (params.tipo == "1") {
+                if (params.parametro && params.parametro.trim().size() > 0) {
+                    prsp = Presupuesto.findAll("from Presupuesto where numero like '%${params.parametro}%' and movimiento=1 order by numero")
+                } else {
+                    prsp = Presupuesto.findAllByMovimiento(1, [sort: "numero", max: 20])
+                }
+            } else {
+                if (params.parametro && params.parametro.trim().size() > 0) {
+                    prsp = Presupuesto.findAll("from Presupuesto where descripcion like '%${params.parametro}%' and movimiento=1 order by numero")
+                } else {
+                    prsp = Presupuesto.findAllByMovimiento(1, [sort: "descripcion", max: 20])
+                }
+            }
+        }
+        [prsp: prsp]
+    }
+
+    def guardarAsignacionGastoCorriente = {
+        println "save " + params
+        def asg = kerberosService.save(params, Asignacion, session.perfil, session.usuario)
+        if (asg.errors.getErrorCount() != 0) {
+            render(view: "nuevaAsignacionGastoCorriente", model: [asignacionInstance: asg])
+        } else {
+            redirect(action: "pacAsignacion", params: [id: asg.id])
+        }
+    }
+
+    def pacAsignacion = {
+        def asignacion = Asignacion.get(params.id)
+        def pac = Obra.findAllByAsignacion(asignacion)
+        [asignacion: asignacion, obras: pac]
+    }
+
+    def buscarCcp = {
+        println "buscar " + params
+        def ccps = []
+        if (!params.tipo) {
+            if (params.parametro && params.parametro.trim().size() > 0) {
+                ccps = CodigoComprasPublicas.findAll("from CodigoComprasPublicas where numero like '%${params.parametro}%'  and movimiento=1 order by numero", [max: 20])
+            } else {
+                println "aqui "
+                ccps = CodigoComprasPublicas.findAllByMovimiento(1, [sort: "numero", max: 20])
+            }
+        } else {
+            if (params.tipo == "1") {
+                if (params.parametro && params.parametro.trim().size() > 0) {
+                    ccps = CodigoComprasPublicas.findAll("from CodigoComprasPublicas where numero like '%${params.parametro}%' and movimiento=1 order by numero", [max: 20])
+                } else {
+                    ccps = CodigoComprasPublicas.findAllByMovimiento(1, [sort: "numero", max: 20])
+                }
+            } else {
+                if (params.parametro && params.parametro.trim().size() > 0) {
+                    ccps = CodigoComprasPublicas.findAll("from CodigoComprasPublicas where descripcion like '%${params.parametro.toUpperCase()}%' and movimiento=1 order by numero", [max: 20])
+                } else {
+                    ccps = CodigoComprasPublicas.findAllByMovimiento(1, [sort: "descripcion", max: 20])
+                }
+            }
+        }
+        [ccps: ccps]
+    }
+
+
+    def buscarActividad = {
+        println "buscar act " + params
+        def acts = []
+        if (!params.tipo) {
+            if (params.parametro && params.parametro.trim().size() > 0) {
+                acts = Actividad.findAll("from Actividad where codigo like '%${params.parametro}%'   order by codigo")
+            } else {
+                println "aqui "
+                acts = Actividad.list([sort: "codigo", max: 20])
+            }
+        } else {
+            if (params.tipo == "1") {
+                if (params.parametro && params.parametro.trim().size() > 0) {
+                    acts = Actividad.findAll("from Actividad where codigo like '%${params.parametro}%'  order by codigo")
+                } else {
+                    acts = Actividad.list([sort: "codigo", max: 20])
+                }
+            } else {
+                if (params.parametro && params.parametro.trim().size() > 0) {
+                    acts = Actividad.findAll("from Actividad where descripcion like '%${params.parametro}%'  order by descripcion")
+                } else {
+                    acts = Actividad.list([sort: "descripcion", max: 20])
+                }
+            }
+        }
+        [acts: acts]
+    }
+
+    def agregaAsignacion = {
+        println "parametros agregaAsignacion:" + params
+        def listaFuentes = Financiamiento.findAllByProyectoAndAnio(Proyecto.get(params.proy), Anio.get(params.anio)).fuente
+        def asgnInstance = Asignacion.get(params.id)
+        render(view: 'crear', model: ['asignacionInstance': asgnInstance, 'fuentes': listaFuentes])
+    }
+
+    def creaHijo = {
+        println "parametros creaHijo:" + params
+        def nueva = new Asignacion()
+        def valor = params.valor.toFloat()
+        def asgn = Asignacion.get(params.id)
+        def fnte = Fuente.get(params.fuente)
+        def prsp = Presupuesto.get(params.partida)
+        def resultado = 0
+        // debe borrar el registro actual de pras y crear uno nuevo con los nuevos valores
+        ProgramacionAsignacion.findAllByAsignacion(Asignacion.get(params.id)).each {
+            //println "proceso la asignación ${it}"
+            def p = [id: it.id, controllerName: 'asignacion', actionName: 'creaHijo']
+            //println "parametros de borrado: " + p
+            kerberosService.delete(p, ProgramacionAsignacion, session.perfil, session.usuario)
+        }
+        asgn.planificado -= valor
+        asgn = kerberosService.saveObject(asgn, Asignacion, session.perfil, session.usuario, "agregaAsignacion", "asignacion", session)
+        if (asgn.errors.getErrorCount() == 0) {
+            resultado += guardarPras(asgn)
+        } else {
+            resultado = 0
+        }
+        if (resultado) {
+            nueva.properties = asgn.properties
+            nueva.padre = asgn
+            nueva.fuente = fnte
+            nueva.presupuesto = prsp
+            nueva.planificado = valor
+            //println "pone padre: ${nueva.padre}"
+            nueva = kerberosService.saveObject(nueva, Asignacion, session.perfil, session.usuario, "agregaAsignacion", "asignacion", session)
+            if (nueva.errors.getErrorCount() == 0) {
+                println "crea la progrmaación de " + nueva.id
+                resultado += guardarPras(nueva)
+            } else {
+                resultado = 0
+            }
+        }
+        render(nueva.id)
+    }
+
+    def borrarAsignacion = {
+        println "parametros borrarAsignacion:" + params
+        def asgn = Asignacion.get(params.id)
+        def pdre = Asignacion.get(asgn.padre.id)
+        def p = [:]
+        // debe borrar el registro actual de pras y crear uno nuevo con los nuevos valores
+        ProgramacionAsignacion.findAllByAsignacion(asgn).each {
+            p = [id: it.id, controllerName: 'asignacion', actionName: 'borrarAsignacion']
+            kerberosService.delete(p, ProgramacionAsignacion, session.perfil, session.usuario)
+        }
+        p = [id: asgn.id, controllerName: 'asignacion', actionName: 'borrarAsignacion']
+        kerberosService.delete(p, Asignacion, session.perfil, session.usuario)
+        pdre.planificado += asgn.planificado
+        pdre = kerberosService.saveObject(pdre, Asignacion, session.perfil, session.usuario, "agregaAsignacion", "asignacion", session)
+        ProgramacionAsignacion.findAllByAsignacion(pdre).each {
+            p = [id: it.id, controllerName: 'asignacion', actionName: 'borrarAsignacion']
+            kerberosService.delete(p, ProgramacionAsignacion, session.perfil, session.usuario)
+        }
+        if (pdre.errors.getErrorCount() == 0) {
+            guardarPras(pdre)
+        }
+        render("ok")
+    }
+
+}

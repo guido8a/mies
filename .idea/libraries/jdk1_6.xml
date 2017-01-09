@@ -1,0 +1,106 @@
+<component name="libraryTable">
+  <library name="jdk1.6">
+    <CLASSES>
+      <root url="file:///opt/jdk1.6.0_21" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="file:///opt/jdk1.6.0_21/db/javadoc/jdbc4" />
+      <root url="file:///opt/jdk1.6.0_21/db/javadoc/jdbc3" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file:///opt/jdk1.6.0_21" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/CardTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/WireFrame" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/ArcTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/DrawTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/Fractal" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/GraphicsTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/NervousText" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/ImageMap" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/TicTacToe" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/SimpleGraph" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/DitherTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/BarChart" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/JumpingBox" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/Blink" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/Clock" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/SortDemo" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/SpreadSheet" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/GraphLayout" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/MoleculeViewer" />
+      <root url="file:///opt/jdk1.6.0_21/demo/applets/Animator" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/Java2D/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/CodePointIM/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/SwingApplet/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/Notepad/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/FileChooserDemo/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/Metalworks/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/SampleTree/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/Font2DTest/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/Stylepad/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/SwingSet2/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jfc/TableExample/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/management/MemoryMonitor/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/management/VerboseGC/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/management/FullThreadDump/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/management/JTop/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jvmti/heapTracker/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jvmti/minst/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/jvmti/mtrace/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/scripting/jconsole-plugin/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/CardTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/WireFrame" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/ArcTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/DrawTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/Fractal" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/GraphicsTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/NervousText" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/ImageMap" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/TicTacToe" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/SimpleGraph" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/DitherTest" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/BarChart" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/JumpingBox" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/Blink" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/Clock" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/SortDemo" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/SpreadSheet" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/GraphLayout" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/MoleculeViewer" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/applets/Animator" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/Java2D/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/CodePointIM/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/SwingApplet/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/Notepad/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/FileChooserDemo/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/Metalworks/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/SampleTree/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/Font2DTest/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/Stylepad/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/SwingSet2/src" />
+      <root url="file:///opt/jdk1.6.0_21/demo/plugin/jfc/TableExample/src" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jmx/jmx-scandir/test" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jmx/jmx-scandir/src" />
+      <root url="file:///opt/jdk1.6.0_21/sample/nio/server" />
+      <root url="file:///opt/jdk1.6.0_21/sample/scripting/scriptpad/src" />
+      <root url="file:///opt/jdk1.6.0_21/sample/webservices/EbayClient/src" />
+      <root url="file:///opt/jdk1.6.0_21/sample/webservices/EbayServer/src" />
+      <root url="file:///opt/jdk1.6.0_21/sample/javac/processing/src" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jnlp/raf/src" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jnlp/webpad/src/version1" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jnlp/webpad/src/servlet" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jnlp/servlet/src/classes" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jnlp/corba/src/core" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jnlp/corba/src/stubs" />
+      <root url="file:///opt/jdk1.6.0_21/sample/jnlp/jreinstaller/src/share/classes" />
+      <root url="file:///opt/jdk1.6.0_21/db/demo/programs/scores/java/server" />
+      <root url="file:///opt/jdk1.6.0_21/db/demo/programs/scores/java/client" />
+      <root url="file:///opt/jdk1.6.0_21/db/demo/programs/scores/java/common" />
+      <root url="file:///opt/jdk1.6.0_21/db/demo/programs/simple" />
+      <root url="file:///opt/jdk1.6.0_21/db/demo/programs/vtis/java" />
+      <root url="file:///opt/jdk1.6.0_21/db/demo/programs" />
+      <root url="file:///opt/jdk1.6.0_21" />
+    </SOURCES>
+    <jarDirectory url="file:///opt/jdk1.6.0_21" recursive="false" type="SOURCES" />
+  </library>
+</component>

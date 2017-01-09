@@ -1,0 +1,451 @@
+<%  if (property.type == Boolean.class || property.type == boolean.class)
+        out << renderBooleanEditor(domainClass, property)
+    else if (Number.class.isAssignableFrom(property.type) || (property.type.isPrimitive() && property.type != boolean.class))
+        out << renderNumberEditor(domainClass, property)
+    else if (property.type == String.class)
+        out << renderStringEditor(domainClass, property)
+    else if (property.type == Date.class || property.type == java.sql.Date.class || property.type == java.sql.Time.class || property.type == Calendar.class)
+        out << renderDateEditor(domainClass, property)
+    else if (property.type == URL.class)
+        out << renderStringEditor(domainClass, property)
+    else if (property.isEnum())
+        out << renderEnumEditor(domainClass, property)
+    else if (property.type == TimeZone.class)
+        out << renderSelectTypeEditor("timeZone", domainClass, property)
+    else if (property.type == Locale.class)
+        out << renderSelectTypeEditor("locale", domainClass, property)
+    else if (property.type == Currency.class)
+        out << renderSelectTypeEditor("currency", domainClass, property)
+    else if (property.type==([] as Byte[]).class) //TODO: Bug in groovy means i have to do this :(
+        out << renderByteArrayEditor(domainClass, property)
+    else if (property.type==([] as byte[]).class) //TODO: Bug in groovy means i have to do this :(
+        out << renderByteArrayEditor(domainClass, property)
+    else if (property.manyToOne || property.oneToOne)
+        out << renderManyToOne(domainClass, property)
+    else if ((property.oneToMany && !property.bidirectional) || (property.manyToMany && property.isOwningSide()))
+        out << renderManyToMany(domainClass, property)
+    else if (property.oneToMany)
+        out << renderOneToMany(domainClass, property)
+
+    private renderEnumEditor(domainClass, property) {
+        if(!cp) {
+            return "<g:select class=\"field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" from=\"\${${property.type.name}?.values()}\" keys=\"\${${property.type.name}?.values()*.name()}\" value=\"\${${domainInstance}?.${property.name}?.name()}\" ${renderNoSelection(property)} />"
+        } else {
+            return "<g:select class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" from=\"\${${property.type.name}?.values()}\" keys=\"\${${property.type.name}?.values()*.name()}\" value=\"\${${domainInstance}?.${property.name}?.name()}\" ${renderNoSelection(property)} />"
+        }
+    }
+
+    private renderStringEditor(domainClass, property) {
+        if (!cp) {
+            return "<g:textField class=\"field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}}\" />"
+        }
+        else {
+            if ("textarea" == cp.widget || (cp.maxSize > 255 && !cp.password && !cp.inList)) {
+
+                def sb = new StringBuffer("<g:textArea ")
+
+                sb << "class=\"field ${(cp.nullable && cp.blank) ? '' : 'required '}${cp.email ? 'email ' : ''}${cp.url ? 'url ' : ''}${cp.creditCard ? 'creditcard ' : ''}ui-widget-content ui-corner-all\" "
+                if(cp.minSize) {
+                    sb << "minLenght=\"${cp.minSize}\" "
+                }
+                if(cp.maxSize) {
+                    sb << "maxLenght=\"${cp.maxSize}\" "
+                }
+                if(cp.range) {
+                    def l= cp.range
+                    sb << "min=\"${l[0]}\" "
+                    sb << "max=\"${l[l.size()-1]}\" "
+                }
+                sb << "name=\"${property.name}\" id=\"${property.name}\" "
+                sb << "title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" "
+                sb << "cols=\"40\" rows=\"5\" value=\"\${${domainInstance}?.${property.name}}\" />"
+
+                return sb.toString()
+            }
+            else {
+                if (cp.inList) {
+                    return "<g:select class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" from=\"\${${domainInstance}.constraints.${property.name}.inList}\" value=\"\${${domainInstance}?.${property.name}}\" valueMessagePrefix=\"${domainClass.propertyName}.${property?.name}\" ${renderNoSelection(property)} />"
+                }
+                else {
+                    def sb = new StringBuffer("<g:")
+                    cp.password ? sb << "passwordField " : sb << "textField "
+                    sb << " name=\"${property.name}\" id=\"${property.name}\" "
+                    sb << "title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" "
+                    sb <<  "class=\"field ${(cp.nullable && cp.blank) ? '' : 'required '}${cp.email ? 'email ' : ''}${cp.url ? 'url ' : ''}${cp.creditCard ? 'creditcard ' : ''}ui-widget-content ui-corner-all\" "
+                    if(cp.minSize) {
+                        sb << "minLenght=\"${cp.minSize}\" "
+                    }
+                    if(cp.maxSize) {
+                        sb << "maxLenght=\"${cp.maxSize}\" "
+                    }
+                    if(cp.range) {
+                        def l= cp.range
+                        sb << "min=\"${l[0]}\" "
+                        sb << "max=\"${l[l.size()-1]}\" "
+                    }
+                    if (!cp.editable) sb << "readonly=\"readonly\" "
+                    sb << "value=\"\${${domainInstance}?.${property.name}}\" />"
+                    return sb.toString()
+                }
+            }
+        }
+    }
+
+    private renderByteArrayEditor(domainClass, property) {
+        if(!cp) {
+            return "<input class=\"field ui-widget-content ui-corner-all\" type=\"file\" id=\"${property.name}\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" />"
+        } else {
+            return "<input class=\"field ${(cp.nullable && cp.blank) ? '' : 'required '}ui-widget-content ui-corner-all\" type=\"file\" id=\"${property.name}\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" />"
+        }
+    }
+
+    private renderManyToOne(domainClass,property) {
+        if (property.association) {
+            if(!cp) {
+                return "<g:select class=\"field ui-widget-content ui-corner-all\" name=\"${property.name}.id\" from=\"\${${property.type.name}.list()}\" optionKey=\"id\" title=\"${property.name.capitalize()}\" value=\"\${${domainInstance}?.${property.name}?.id}\" ${renderNoSelection(property)} />"
+            } else {
+                return "<g:select class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" name=\"${property.name}.id\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" from=\"\${${property.type.name}.list()}\" optionKey=\"id\" value=\"\${${domainInstance}?.${property.name}?.id}\" ${renderNoSelection(property)} />"
+            }
+        }
+    }
+
+    private renderManyToMany(domainClass, property) {
+        if(!cp) {
+            return "<g:select class=\"field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" from=\"\${${property.referencedDomainClass.fullName}.list()}\" multiple=\"yes\" optionKey=\"id\" size=\"5\" value=\"\${${domainInstance}?.${property.name}*.id}\" />"
+        }
+        else {
+            return "<g:select class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" from=\"\${${property.referencedDomainClass.fullName}.list()}\" multiple=\"yes\" optionKey=\"id\" size=\"5\" value=\"\${${domainInstance}?.${property.name}*.id}\" />"
+        }
+    }
+
+    private renderOneToMany(domainClass, property) {
+        def sw = new StringWriter()
+        def pw = new PrintWriter(sw)
+        pw.println()
+        pw.println "<ul>"
+        pw.println "<g:each in=\"\${${domainInstance}?.${property.name}?}\" var=\"${property.name[0]}\">"
+        pw.println "    <li><g:link controller=\"${property.referencedDomainClass.propertyName}\" action=\"show\" id=\"\${${property.name[0]}.id}\">\${${property.name[0]}?.encodeAsHTML()}</g:link></li>"
+        pw.println "</g:each>"
+        pw.println "</ul>"
+        pw.println "<g:link controller=\"${property.referencedDomainClass.propertyName}\" action=\"create\" params=\"['${domainClass.propertyName}.id': ${domainInstance}?.id]\">\${message(code: 'default.add.label', args: [message(code: '${property.referencedDomainClass.propertyName}.label', default: '${property.referencedDomainClass.shortName}')])}</g:link>"
+        return sw.toString()
+    }
+
+    private renderNumberEditor(domainClass, property) {
+        if (!cp) {
+            if (property.type == Byte.class) {
+                return "<g:select class=\"field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" from=\"\${-128..127}\" value=\"\${fieldValue(bean: ${domainInstance}, field: '${property.name}')}\" />"
+            }
+            else {
+                return "<g:textField class=\"field number ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" value=\"\${fieldValue(bean: ${domainInstance}, field: '${property.name}')}\" />"
+            }
+        }
+        else {
+            if (cp.range) {
+                return "<g:select class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" from=\"\${${cp.range.from}..${cp.range.to}}\" value=\"\${fieldValue(bean: ${domainInstance}, field: '${property.name}')}\" ${renderNoSelection(property)} />"
+            }
+            else if (cp.inList) {
+                return "<g:select class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" from=\"\${${domainInstance}.constraints.${property.name}.inList}\" value=\"\${fieldValue(bean: ${domainInstance}, field: '${property.name}')}\" valueMessagePrefix=\"${domainClass.propertyName}.${property?.name}\" ${renderNoSelection(property)} />"
+            }
+            else {
+                return "<g:textField class=\"field number ${(cp.nullable && cp.blank) ? '' : 'required '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" value=\"\${fieldValue(bean: ${domainInstance}, field: '${property.name}')}\" />"
+            }
+        }
+     }
+
+    private renderBooleanEditor(domainClass, property) {
+        if (!cp) {
+            return "<g:checkBox class=\"field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}}\" />"
+        }
+        else {
+            def sb = new StringBuffer("<g:checkBox class=\"${(cp.nullable && cp.blank) ? '' : 'required '}field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" ")
+            if (cp.widget) sb << "widget=\"${cp.widget}\" ";
+            cp.attributes.each { k, v ->
+                sb << "${k}=\"${v}\" "
+            }
+            sb << "value=\"\${${domainInstance}?.${property.name}}\" />"
+            return sb.toString()
+        }
+    }
+
+    private renderDateEditor(domainClass, property) {
+        def precision = (property.type == Date.class || property.type == java.sql.Date.class || property.type == Calendar.class) ? "day" : "minute";
+
+        if(cp) {
+            if(cp.attributes.precision) {
+                precision = cp.attributes.precision
+            }
+        }
+
+        def sb = new StringBuffer("")
+
+        switch(precision) {
+            case "year":
+                if(!cp) {
+                    return "<g:datePicker name=\"${property.name}\" id=\"${property.name}\" title=\"${property.name.capitalize()}\" class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" precision=\"${precision}\" value=\"\${${domainInstance}?.${property.name}}\" />"
+                } else {
+                    if (!cp.editable) {
+                        return "\${${domainInstance}?.${property.name}?.toString()}"
+                    }
+                    else {
+                        sb << ("<g:datePicker name=\"${property.name}\" id=\"${property.name}\" ")
+                        sb << "class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" "
+                        if (cp.format) sb << "format=\"${cp.format}\" "
+                        if (cp.widget) sb << "widget=\"${cp.widget}\" "
+                        cp.attributes.each { k, v ->
+                            sb << "${k}=\"${v}\" "
+                        }
+                        sb << "title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" "
+                        sb << "precision=\"${precision}\" value=\"\${${domainInstance}?.${property.name}}\" ${renderNoSelection(property)} />"
+                        return sb.toString()
+                    }
+                }
+                break;
+            case "month":
+                if(!cp) {
+                    return "<g:datePicker name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" precision=\"${precision}\" value=\"\${${domainInstance}?.${property.name}}\" />"
+                } else {
+                    if (!cp.editable) {
+                        return "\${${domainInstance}?.${property.name}?.toString()}"
+                    }
+                    else {
+                        sb << ("<g:datePicker name=\"${property.name}\" id=\"${property.name}\" ")
+                        sb << "class=\"field ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" "
+                        if (cp.format) sb << "format=\"${cp.format}\" "
+                        if (cp.widget) sb << "widget=\"${cp.widget}\" "
+                        cp.attributes.each { k, v ->
+                            sb << "${k}=\"${v}\" "
+                        }
+                        sb << "title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" "
+                        sb << "precision=\"${precision}\" value=\"\${${domainInstance}?.${property.name}}\" ${renderNoSelection(property)} />"
+                        return sb.toString()
+                    }
+                }
+                break;
+            case "day":
+                sb << "<input type=\"hidden\" value=\"date.struct\" name=\"${property.name}\">"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_day\" id=\"${property.name}_day\"  value=\"\${${domainInstance}?.${property.name}?.format('dd')}\" >"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_month\" id=\"${property.name}_month\" value=\"\${${domainInstance}?.${property.name}?.format('MM')}\">"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_year\" id=\"${property.name}_year\" value=\"\${${domainInstance}?.${property.name}?.format('yyyy')}\">"
+                if(!cp) {
+                    sb << ("\n<g:textField class=\"datepicker field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}?.format('dd-MM-yyyy')}\" />")
+                } else {
+                    sb << ("\n<g:textField class=\"datepicker field ${(cp.nullable && cp.blank) ? '' : 'required '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}?.format('dd-MM-yyyy')}\" />")
+                }
+
+                sb << "\n<script type='text/javascript'>"
+                sb << "\n    \$('#${property.name}').datepicker({"
+                sb << "\n        changeMonth: true,"
+                sb << "\n        changeYear:true,"
+                sb << "\n        dateFormat: 'dd-mm-yy',"
+                sb << "\n        onClose: function(dateText, inst) {"
+                sb << "\n            var date = \$(this).datepicker('getDate');"
+                sb << "\n            var day, month, year;"
+                sb << "\n            if(date != null) {"
+                sb << "\n                day = date.getDate();"
+                sb << "\n                month = parseInt(date.getMonth()) + 1;"
+                sb << "\n                year = date.getFullYear();"
+                sb << "\n            } else {"
+                sb << "\n                day = '';"
+                sb << "\n                month = '';"
+                sb << "\n                year = '';"
+                sb << "\n            }"
+                sb << "\n            var id = \$(this).attr('id');"
+                sb << "\n            \$('#' + id + '_day').val(day);"
+                sb << "\n            \$('#' + id + '_month').val(month);"
+                sb << "\n            \$('#' + id + '_year').val(year);"
+                sb << "\n        }"
+                sb << "\n    });"
+                sb << "\n</script>"
+
+                break;
+            case "hour":
+                sb << "<input type=\"hidden\" value=\"date.struct\" name=\"${property.name}\">"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_day\" id=\"${property.name}_day\"  value=\"\${${domainInstance}?.${property.name}?.format('dd')}\" >"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_month\" id=\"${property.name}_month\" value=\"\${${domainInstance}?.${property.name}?.format('MM')}\">"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_year\" id=\"${property.name}_year\" value=\"\${${domainInstance}?.${property.name}?.format('yyyy')}\">"
+                if(!cp) {
+                    sb << ("\n<g:textField class=\"datepicker field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" />")
+                    //horas
+                    sb << " \n<select name=\"${property.name}_hour\" id=\"${property.name}_hour\" class=\"field hourMin ui-widget-content ui-corner-all\" title=\"${property.name.capitalize()}\" >"
+                    sb << "\n    <g:each var=\"i\" in=\"\${0..23}\" >"
+                    sb << "\n        <g:set var=\"h\" value=\"\${''+i}\" />"
+                    sb << "\n        <g:if test=\"\${i < 10}\" >"
+                    sb << "\n            <g:set var=\"h\" value=\"\${'0'+i}\" />"
+                    sb << "\n        </g:if>"
+                    sb << "\n        <option value=\"\${h}\" "
+                    sb << "\n        <g:if test=\"\${h == ${domainInstance}?.${property.name}?.format('HH')}\" >"
+                    sb << "\n          selected=\"true\" "
+                    sb << "\n        </g:if>"
+                    sb << "\n        >\${h}</option>"
+                    sb << "\n    </g:each>"
+                    sb << '</select> :00'
+                } else {
+                    sb << ("\n<g:textField class=\"datepicker field ${(cp.nullable && cp.blank) ? '' : 'required '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}?.format('dd-MM-yyyy')}\" />")
+                    //horas
+                    sb << " \n<select name=\"${property.name}_hour\" id=\"${property.name}_hour\" class=\"field hourMin ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" >"
+                    sb << "\n    <g:each var=\"i\" in=\"\${0..23}\" >"
+                    sb << "\n        <g:set var=\"h\" value=\"\${''+i}\" />"
+                    sb << "\n        <g:if test=\"\${i < 10}\" >"
+                    sb << "\n            <g:set var=\"h\" value=\"\${'0'+i}\" />"
+                    sb << "\n        </g:if>"
+                    sb << "\n        <option value=\"\${h}\" "
+                    sb << "\n        <g:if test=\"\${h == ${domainInstance}?.${property.name}?.format('HH')}\" >"
+                    sb << "\n          selected=\"true\" "
+                    sb << "\n        </g:if>"
+                    sb << "\n        >\${h}</option>"
+                    sb << "\n    </g:each>"
+                    sb << '</select> :00'
+                }
+                sb << "\n<script type='text/javascript'>"
+                sb << "\n    \$('#${property.name}_hour').val(\"\${domainInstance}?.${property.name}?.format('HH')}\");"
+                sb << "\n    \$('#${property.name}').datepicker({"
+                sb << "\n        changeMonth: true,"
+                sb << "\n        changeYear:true,"
+                sb << "\n        dateFormat: 'dd-mm-yy',"
+                sb << "\n        onClose: function(dateText, inst) {"
+                sb << "\n            var date = \$(this).datepicker('getDate');"
+                sb << "\n            var day, month, year;"
+                sb << "\n            if(date != null) {"
+                sb << "\n                day = date.getDate();"
+                sb << "\n                month = parseInt(date.getMonth()) + 1;"
+                sb << "\n                year = date.getFullYear();"
+                sb << "\n            } else {"
+                sb << "\n                day = '';"
+                sb << "\n                month = '';"
+                sb << "\n                year = '';"
+                sb << "\n            }"
+                sb << "\n            var id = \$(this).attr('id');"
+                sb << "\n            \$('#' + id + '_day').val(day);"
+                sb << "\n            \$('#' + id + '_month').val(month);"
+                sb << "\n            \$('#' + id + '_year').val(year);"
+                sb << "\n        }"
+                sb << "\n    });"
+                sb << "\n</script>"
+                break;
+            case "minute":
+                sb << "<input type=\"hidden\" value=\"date.struct\" name=\"${property.name}\">"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_day\" id=\"${property.name}_day\"  value=\"\${${domainInstance}?.${property.name}?.format('dd')}\" >"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_month\" id=\"${property.name}_month\" value=\"\${${domainInstance}?.${property.name}?.format('MM')}\">"
+                sb << "\n<input type=\"hidden\" name=\"${property.name}_year\" id=\"${property.name}_year\" value=\"\${${domainInstance}?.${property.name}?.format('yyyy')}\">"
+                if(!cp) {
+                    sb << ("\n<g:textField class=\"datepicker field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}?.format('dd-MM-yyyy')}\" />")
+                    //horas
+                    sb << " \n<select name=\"${property.name}_hour\" id=\"${property.name}_hour\" class=\"field hourMin ui-widget-content ui-corner-all\" title=\"${property.name.capitalize()}\" >"
+                    sb << "\n    <g:each var=\"i\" in=\"\${0..23}\" >"
+                    sb << "\n        <g:set var=\"h\" value=\"\${''+i}\" />"
+                    sb << "\n        <g:if test=\"\${i < 10}\" >"
+                    sb << "\n            <g:set var=\"h\" value=\"\${'0'+i}\" />"
+                    sb << "\n        </g:if>"
+                    sb << "\n        <option value=\"\${h}\" "
+                    sb << "\n        <g:if test=\"\${h == ${domainInstance}?.${property.name}?.format('HH')}\" >"
+                    sb << "\n          selected=\"true\" "
+                    sb << "\n        </g:if>"
+                    sb << "\n        >\${h}</option>"
+                    sb << "\n    </g:each>"
+                    sb << '</select> :'
+                    //minutos
+                    sb << "\n<select name=\"${property.name}_minute\" id=\"${property.name}_minute\" class=\"field hourMin ui-widget-content ui-corner-all\" title=\"${property.name.capitalize()}\" >"
+                    sb << "\n    <g:each var=\"i\" in=\"\${0..59}\" >"
+                    sb << "\n        <g:set var=\"m\" value=\"\${''+i}\" />"
+                    sb << "\n        <g:if test=\"\${i < 10}\" >"
+                    sb << "\n            <g:set var=\"m\" value=\"\${'0'+i}\" />"
+                    sb << "\n        </g:if>"
+                    sb << "\n        <option value=\"\${m}\" "
+                    sb << "\n        <g:if test=\"\${m == ${domainInstance}?.${property.name}?.format('mm')}\" >"
+                    sb << "\n          selected=\"true\" "
+                    sb << "\n        </g:if>"
+                    sb << "\n        >\${m}</option>"
+                    sb << "\n    </g:each>"
+                    sb << '</select>'
+                } else {
+                    sb << ("\n<g:textField class=\"datepicker field ${(cp.nullable && cp.blank) ? '' : 'required '}ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}?.format('dd-MM-yyyy')}\" />")
+                    //horas
+                    sb << "\n <select name=\"${property.name}_hour\" id=\"${property.name}_hour\" class=\"field hourMin ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" >"
+                    sb << "\n    <g:each var=\"i\" in=\"\${0..23}\" >"
+                    sb << "\n        <g:set var=\"h\" value=\"\${''+i}\" />"
+                    sb << "\n        <g:if test=\"\${i < 10}\" >"
+                    sb << "\n            <g:set var=\"h\" value=\"\${'0'+i}\" />"
+                    sb << "\n        </g:if>"
+                    sb << "\n        <option value=\"\${h}\" "
+                    sb << "\n        <g:if test=\"\${h == ${domainInstance}?.${property.name}?.format('HH')}\" >"
+                    sb << "\n          selected=\"true\" "
+                    sb << "\n        </g:if>"
+                    sb << "\n        >\${h}</option>"
+                    sb << "\n    </g:each>"
+                    sb << '</select> :'
+                    //minutos
+                    sb << "\n<select name=\"${property.name}_minute\" id=\"${property.name}_minute\" class=\"field hourMin ${(cp.nullable && cp.blank) ? '' : 'required requiredCmb '}ui-widget-content ui-corner-all\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" >"
+                    sb << "\n    <g:each var=\"i\" in=\"\${0..59}\" >"
+                    sb << "\n        <g:set var=\"m\" value=\"\${''+i}\" />"
+                    sb << "\n        <g:if test=\"\${i < 10}\" >"
+                    sb << "\n            <g:set var=\"m\" value=\"\${'0'+i}\" />"
+                    sb << "\n        </g:if>"
+                    sb << "\n        <option value=\"\${m}\" "
+                    sb << "\n        <g:if test=\"\${m == ${domainInstance}?.${property.name}?.format('mm')}\" >"
+                    sb << "\n          selected=\"true\" "
+                    sb << "\n        </g:if>"
+                    sb << "\n        >\${m}</option>"
+                    sb << "\n    </g:each>"
+                    sb << '</select>'
+                }
+                sb << "\n<script type='text/javascript'>"
+                sb << "\n    \$('#${property.name}').datepicker({"
+                sb << "\n        changeMonth: true,"
+                sb << "\n        changeYear:true,"
+                sb << "\n        dateFormat: 'dd-mm-yy',"
+                sb << "\n        onClose: function(dateText, inst) {"
+                sb << "\n            var date = \$(this).datepicker('getDate');"
+                sb << "\n            var day, month, year;"
+                sb << "\n            if(date != null) {"
+                sb << "\n                day = date.getDate();"
+                sb << "\n                month = parseInt(date.getMonth()) + 1;"
+                sb << "\n                year = date.getFullYear();"
+                sb << "\n            } else {"
+                sb << "\n                day = '';"
+                sb << "\n                month = '';"
+                sb << "\n                year = '';"
+                sb << "\n            }"
+                sb << "\n            var id = \$(this).attr('id');"
+                sb << "\n            \$('#' + id + '_day').val(day);"
+                sb << "\n            \$('#' + id + '_month').val(month);"
+                sb << "\n            \$('#' + id + '_year').val(year);"
+                sb << "\n        }"
+                sb << "\n    });"
+                sb << "\n</script>"
+                break;
+        }
+
+        return sb.toString()
+    }
+
+    private renderSelectTypeEditor(type, domainClass,property) {
+        if (!cp) {
+            return "<g:${type}Select class=\"field ui-widget-content ui-corner-all\" name=\"${property.name}\" title=\"${property.name.capitalize()}\" id=\"${property.name}\" value=\"\${${domainInstance}?.${property.name}}\" />"
+        }
+        else {
+            def sb = new StringBuffer("<g:${type}Selectname=\"${property.name}\" class=\"field ui-widget-content ui-corner-all\" title=\"${cp.attributes.mensaje ? cp.attributes.mensaje : property.name.capitalize()}\" id=\"${property.name}\" ")
+            if (cp.widget) sb << "widget=\"${cp.widget}\" ";
+            cp.attributes.each { k, v ->
+                sb << "${k}=\"${v}\" "
+            }
+            sb << "value=\"\${${domainInstance}?.${property.name}}\" ${renderNoSelection(property)} />"
+            return sb.toString()
+        }
+    }
+
+    private renderNoSelection(property) {
+        if (property.optional) {
+            if (property.manyToOne || property.oneToOne) {
+                return "noSelection=\"['null': '']\""
+            }
+            else if (property.type == Date.class || property.type == java.sql.Date.class || property.type == java.sql.Time.class || property.type == Calendar.class) {
+                return "default=\"none\" noSelection=\"['': '']\""
+            }
+            else {
+                return "noSelection=\"['': '']\""
+            }
+        }
+        return ""
+    }
+%>
