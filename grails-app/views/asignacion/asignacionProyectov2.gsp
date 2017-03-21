@@ -20,13 +20,13 @@
 <div style="margin-left: 10px;">
     <g:if test="${actual.estado!=0}">
         <g:link class="btn" controller="modificacionProyecto" action="solicitarModificacionUnidad"
-                params="${[unidad:proyecto.unidadEjecutora.id,anio:actual.id]}">Solicitar modificación</g:link>
+                params="${[unidad:proyecto.unidadEjecutora.id,anio:actual.id]}"> <i class="fa fa-share"></i> Solicitar modificación</g:link>
     </g:if>
-    <g:link class="btn" controller="asignacion" action="programacionAsignacionesInversion" id="${proyecto.id}">Programación</g:link>
-    <g:link class="btn" controller="reportes" action="poaInversionesReporteWeb" id="${proyecto.unidadEjecutora.id}" target="_blank">Reporte</g:link>
-    <g:link class="btn" controller="cronograma" action="verCronograma" id="${proyecto.id}">Cronograma</g:link>
-    <g:link class="btn_arbol" controller="entidad" action="arbol_asg">Unidades ejecutoras</g:link>
-    <g:link class="btn" controller="asignacion" action="agregarAsignacionInv" id="${proyecto.id}">Agregar asignaciones</g:link>
+    <g:link class="btn" controller="asignacion" action="programacionAsignacionesInversion" id="${proyecto.id}"><i class="fa fa-building"></i> Programación</g:link>
+    <g:link class="btn" controller="reportes" action="poaInversionesReporteWeb" id="${proyecto.unidadEjecutora.id}" target="_blank"><i class="fa fa-print"></i> Reporte</g:link>
+    <g:link class="btn" controller="cronograma" action="verCronograma" id="${proyecto.id}"><i class="fa fa-calendar"></i> Cronograma</g:link>
+    <g:link class="btn_arbol" controller="entidad" action="arbol_asg"><i class="fa fa-code-fork"></i>  Unidades ejecutoras</g:link>
+    <g:link class="btn" controller="asignacion" action="agregarAsignacionInv" id="${proyecto.id}"> <i class="fa fa-edit"></i> Agregar asignaciones</g:link>
     &nbsp;&nbsp;&nbsp;<b>Año:</b><g:select from="${mies.Anio.list([sort:'anio'])}" id="anio_asg" name="anio" optionKey="id" optionValue="anio" value="${actual.id}"/>
 </div>
 <fieldset class="ui-corner-all" style="width: 98%;margin-top: 40px;">
@@ -80,7 +80,7 @@
                 <td class="agr">
                     <g:if test="${actual.estado==0}">
                         <a href="#" class="btn_agregar" asgn="${asg.id}" proy="${proyecto.id}"
-                           anio="${actual.id}">Dividir en dos partidas</a>
+                           anio="${actual.id}">Está seguro de dividir esta asignación en dos partidas?</a>
                         <g:if test="${asg.padre != null}">
                             <a href="#" class="btn_borrar" asgn="${asg.id}">Eliminar la Asignación</a>
                         </g:if>
@@ -126,16 +126,26 @@
 
     <div style="position: absolute;top:45px;right:10px;font-size: 15px;">
         <b>M&aacute;ximo Inversiones:</b>
-        <g:formatNumber number="${maxInv}"
+        <g:formatNumber number="${maxInv ?  maxInv : 0}"
                         format="###,##0"
                         minFractionDigits="2" maxFractionDigits="2"/>
     </div>
 
+
+
     <div style="position: absolute;top:65px;right:10px;font-size: 17px;">
-        <b>Restante:</b>
-        <g:formatNumber number="${maxInv - totalUnidad}"
-                        format="###,##0"
-                        minFractionDigits="2" maxFractionDigits="2"/>
+        <b style="color: #2fd152">Restante:</b>
+        <g:if test="${maxInv}">
+            <g:formatNumber number="${(maxInv ? maxInv : 0) - totalUnidad}"
+                            format="###,##0"
+                            minFractionDigits="2" maxFractionDigits="2"/>
+        </g:if>
+        <g:else>
+            <g:formatNumber number="${0}"
+                            format="###,##0"
+                            minFractionDigits="2" maxFractionDigits="2"/>
+        </g:else>
+
     </div>
     <div id="dlg_env">
         <input type="hidden" id="env_id" value="">
@@ -163,7 +173,8 @@
     Procesando
 </div>
 <script type="text/javascript">
-    $(".btn_arbol").button({icons:{ primary:"ui-icon-bullet"}})
+//    $(".btn_arbol").button({icons:{ primary:"ui-icon-bullet"}})
+    $(".btn_arbol").button()
     $(".btn").button()
     $(".back").button("option", "icons", {primary:'ui-icon-arrowreturnthick-1-w'});
 
@@ -262,7 +273,7 @@
         text:false
     }).click(function () {
                 //alert ("id:" +$(this).attr("asgn"))
-                if (confirm("Dividir esta asignación con otra partida")) {
+                if (confirm("Dividir esta asignación con otra partida?")) {
                     $.ajax({
                         type:"POST", url:"${createLink(action:'agregaAsignacion', controller: 'asignacion')}",
                         data:"id=" + $(this).attr("asgn") + "&proy=" + $(this).attr("proy") + "&anio=" + $(this).attr("anio"),

@@ -19,6 +19,8 @@
                 src="${resource(dir: 'js/jquery/plugins/countdown', file: 'jquery.countdown.js')}"></script>
         <link rel="stylesheet" href="${resource(dir: 'js/jquery/plugins/countdown', file: 'jquery.countdown.css')}"/>
 
+        <link href="${resource(dir: 'font-awesome-4.2.0/css', file: 'font-awesome.min.css')}" rel="stylesheet">
+
         <script type="text/javascript"
                 src="${resource(dir: 'js/jquery/js', file: 'jquery.ui.datepicker-es.js')}"></script>
 
@@ -48,7 +50,7 @@
              style="width: 70px;height: 30px;position: absolute;top:3px;left: 1015px;border: none;display: none"></div>
 
         <div class="ui-dialog ui-widget ui-widget-content ui-corner-all"
-             style="height: 740px;  width: 1100px; margin-left:10px; position: absolute; left: 20px; top:37px;overflow-y: hidden">
+             style="height: 740px;  width: 1300px; margin-left:10px; position: absolute; left: 20px; top:37px;overflow-y: hidden">
             <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"
                  style="text-align: center;">
                 <span class="ui-dialog-title" style="float: none;"><g:layoutTitle default=""/></span>

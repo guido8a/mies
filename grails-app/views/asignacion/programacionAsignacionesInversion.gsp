@@ -35,7 +35,7 @@
     &nbsp;&nbsp;&nbsp;<b>Año:</b><g:select from="${mies.Anio.list([sort:'anio'])}" id="anio_asg" name="anio" optionKey="id" optionValue="anio" value="${actual.id}"/>
 </div>
 
-<div id="accordion" style="width:1080px;margin-top: 5px;font-size: 11px;">
+<div id="accordion" style="width:1280px;margin-top: 5px;font-size: 11px;">
     <ul>
 
         %{--<li><a href="#tabs-1">Inversión</a></li>--}%
@@ -45,7 +45,7 @@
 
 
     <div id="tabs-1">
-        <table style="width: 1000px;">
+        <table style="width: 1200px;">
             <thead>
             <th style="width: 70px;">Enero</th>
             <th style="width: 70px;">Feb.</th>
@@ -81,7 +81,7 @@
                 <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
                     <td colspan="15"><b>Asignación#${i+1} </b>${asg}</td>
                 </tr>
-                <tr class="${(i % 2) == 0 ? 'odd' : 'even'}">
+                <tr class="${(i % 2) == 0 ? 'odd' : 'even'}" style="width: 1200px">
                     <g:each in="${meses}" var="mes" status="j">
                         <g:if test="${ProgramacionAsignacion.findAll('from ProgramacionAsignacion where asignacion = '+asg.id+' and mes = '+mes+' and padre is null').size()>0}" >
                             <g:set var="progra" value="${ProgramacionAsignacion.findAll('from ProgramacionAsignacion where asignacion = '+asg.id+' and mes = '+mes+' and padre is null')?.pop()}"></g:set>
@@ -137,7 +137,7 @@
                         <g:formatNumber number="${(asg.redistribucion==0)?asg.planificado:asg.redistribucion}" format="###,##0" minFractionDigits="2" maxFractionDigits="2"/>
                     </td>
                     <g:if test="${actual.estado==0}">
-                        <td class=""><a href="#" class="btn guardar ajax" asg="${asg.id}"   icono="ico_cor_${i}" max="${(asg.redistribucion==0)?asg.planificado:asg.redistribucion}" clase="asg_cor_${asg.id}" total="total_cor_${asg.id}">Guardar</a></td>
+                        <td class="" style="width: 70px"><a href="#" class="btn guardar ajax" asg="${asg.id}"   icono="ico_cor_${i}" max="${(asg.redistribucion==0)?asg.planificado:asg.redistribucion}" clase="asg_cor_${asg.id}" total="total_cor_${asg.id}">Guardar</a></td>
                     </g:if>
                     <td class="ui-state-active"><span class="" id="ico_cor_${i}" title="Guardado" style="display: none"><span class="ui-icon ui-icon-check"></span></span></td>
                 </tr>
